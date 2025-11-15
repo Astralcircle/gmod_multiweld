@@ -32,7 +32,7 @@ if SERVER then
 else
 	language.Add("tool.multiweld.name", "MultiWeld")
 	language.Add("tool.multiweld.desc", "Finds the best welding structure to reduce constraints and improve performance")
-	language.Add("tool.multiweld.left", "Add/remove object")
+	language.Add("tool.multiweld.left", "Add/remove object (hold for fast select)")
 	language.Add("tool.multiweld.right", "Weld selected objects")
 	language.Add("tool.multiweld.reload", "Clear selection")
 end
