@@ -58,6 +58,25 @@ function TOOL:LeftClick(trace)
 	return false
 end
 
+function TOOL:Think()
+	local owner = self:GetOwner()
+
+	if not owner:KeyDown(IN_ATTACK) then
+		self.FastMode = nil
+	else
+		if self.FastMode then
+			if self.FastMode <= CurTime() then
+				local trace = owner:GetEyeTrace()
+				if self.Objects[trace.Entity] or not gamemode.Call("CanTool", owner, trace, "multiweld", self, 1) then return end
+
+				self:LeftClick(trace)
+			end
+		else
+			self.FastMode = CurTime() + 0.5
+		end
+	end
+end
+
 function TOOL:RightClick()
 	if CLIENT then return false end
 
