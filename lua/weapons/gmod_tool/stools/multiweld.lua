@@ -81,11 +81,14 @@ end
 function TOOL:RightClick()
 	if CLIENT then return false end
 
-	local scale = self:GetClientNumber("scale", 0)
+	local scale = self:GetClientNumber("scale", 2)
 	local owner = self:GetOwner()
+	local limithit = nil
 	local created = nil
 
 	for ent, color in pairs(self.Objects) do
+		if limithit then break end
+
 		local entaabb1, entaabb2 = ent:GetRotatedAABB(ent:OBBMins(), ent:OBBMaxs())
 		entaabb1:Mul(scale)
 		entaabb2:Mul(scale)
@@ -98,7 +101,8 @@ function TOOL:RightClick()
 			if ent ~= subent then
 				if not owner:CheckLimit("constraints") then
 					self:ClearObjects()
-					return false
+					limithit = true
+					break
 				end
 
 				if not created then
