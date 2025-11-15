@@ -63,7 +63,7 @@ function TOOL:RightClick()
 
 	local scale = self:GetClientNumber("scale", 0)
 	local owner = self:GetOwner()
-	local count = nil
+	local created = nil
 
 	for ent, color in pairs(self.Objects) do
 		local entaabb1, entaabb2 = ent:GetRotatedAABB(ent:OBBMins(), ent:OBBMaxs())
@@ -81,8 +81,8 @@ function TOOL:RightClick()
 					return false
 				end
 
-				if not count then
-					count = 0
+				if not created then
+					created = {}
 				end
 
 				if scale ~= 0 then
@@ -106,14 +106,24 @@ function TOOL:RightClick()
 				if IsValid(weld) then
 					owner:AddCount("constraints", weld)
 					owner:AddCleanup("constraints", weld)
-					count = count + 1
+					table.insert(created, weld)
 				end
 			end
 		end
 	end
 
-	if count then
-		owner:SendLua(string.format("notification.AddLegacy(\"Created %i constraints\", NOTIFY_GENERIC, 3)", count))
+	if created then
+		if #created > 0 then
+			undo.Create("MultiWeld")
+				for _, ent in ipairs(created) do
+					undo.AddEntity(ent)
+				end
+
+				undo.SetPlayer(owner)
+			undo.Finish("#tool.multiweld.name")
+		end
+
+		owner:SendLua(string.format("notification.AddLegacy(\"Created %i constraints\", NOTIFY_GENERIC, 3)", #created))
 		self:ClearObjects()
 	end
 
