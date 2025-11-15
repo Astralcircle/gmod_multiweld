@@ -1,4 +1,3 @@
-
 TOOL.Category = "Constraints"
 TOOL.Name = "MultiWeld"
 TOOL.Information = {
