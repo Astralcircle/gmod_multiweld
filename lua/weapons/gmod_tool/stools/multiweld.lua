@@ -9,6 +9,7 @@ TOOL.Information = {
 
 TOOL.ClientConVar["forcelimit"] = "0"
 TOOL.ClientConVar["nocollide"] = "0"
+TOOL.ClientConVar["scale"] = "2"
 
 if SERVER then
 	function TOOL:ClearObjects()
@@ -30,10 +31,10 @@ if SERVER then
 	end
 else
 	language.Add("tool.multiweld.name", "MultiWeld")
-	language.Add("tool.multiweld.desc", "Weld a bunch of stuff together")
-	language.Add("tool.multiweld.left", "Select object")
-	language.Add("tool.multiweld.right", "Weld objects")
-	language.Add("tool.multiweld.reload", "Clear objects")
+	language.Add("tool.multiweld.desc", "Finds the best welding structure to reduce constraints and improve performance")
+	language.Add("tool.multiweld.left", "Add/remove object")
+	language.Add("tool.multiweld.right", "Weld selected objects")
+	language.Add("tool.multiweld.reload", "Clear selection")
 end
 
 function TOOL:LeftClick(trace)
@@ -54,29 +55,57 @@ function TOOL:LeftClick(trace)
 		end
 	end
 
-	return true
+	return false
 end
 
 function TOOL:RightClick()
 	if CLIENT then return false end
 
-	local ply = self:GetOwner()
+	local scale = self:GetClientNumber("scale", 0)
+	local owner = self:GetOwner()
 	local count = nil
 
 	for ent, color in pairs(self.Objects) do
+		local entaabb1, entaabb2 = ent:GetRotatedAABB(ent:OBBMins(), ent:OBBMaxs())
+		entaabb1:Mul(scale)
+		entaabb2:Mul(scale)
+
+		local entpos = ent:GetPos()
+		entaabb1:Add(entpos)
+		entaabb2:Add(entpos)
+
 		for subent, subcolor in pairs(self.Objects) do
 			if ent ~= subent then
-				if not ply:CheckLimit("constraints") then
+				if not owner:CheckLimit("constraints") then
 					self:ClearObjects()
 					return false
 				end
 
+				if not count then
+					count = 0
+				end
+
+				if scale ~= 0 then
+					local subentaabb1, subentaabb2 = subent:GetRotatedAABB(subent:OBBMins(), subent:OBBMaxs())
+					subentaabb1:Mul(scale)
+					subentaabb2:Mul(scale)
+
+					local subentpos = subent:GetPos()
+					subentaabb1:Add(subentpos)
+					subentaabb2:Add(subentpos)
+
+					if entaabb1.X > subentaabb2.X or entaabb2.X < subentaabb1.X or
+						entaabb1.Y > subentaabb2.Y or entaabb2.Y < subentaabb1.Y or
+						entaabb1.Z > subentaabb2.Z or entaabb2.Z < subentaabb1.Z then
+						continue
+				 	end
+				end
+
 				local weld = constraint.Weld(ent, subent, 0, 0, self:GetClientNumber("forcelimit"), self:GetClientBool("nocollide"))
-				if not count then count = 0 end
 
 				if IsValid(weld) then
-					ply:AddCount("constraints", weld)
-					ply:AddCleanup("constraints", weld)
+					owner:AddCount("constraints", weld)
+					owner:AddCleanup("constraints", weld)
 					count = count + 1
 				end
 			end
@@ -84,7 +113,7 @@ function TOOL:RightClick()
 	end
 
 	if count then
-		ply:SendLua(string.format("notification.AddLegacy(\"Created %i constraints\", NOTIFY_GENERIC, 3)", count))
+		owner:SendLua(string.format("notification.AddLegacy(\"Created %i constraints\", NOTIFY_GENERIC, 3)", count))
 		self:ClearObjects()
 	end
 
@@ -107,9 +136,12 @@ end
 local default_convars = TOOL:BuildConVarList()
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("Welds a bunch of objects together")
+	panel:Help("#tool.multiweld.desc")
 	panel:ToolPresets("massweld", default_convars)
+	panel:NumSlider("Scale:", "multiweld_scale", 0, 10)
+	panel:ControlHelp("Scales the AABB bounds for intersection checks. Higher value = more constraints, 0 = weld all (performance intensive)")
 	panel:NumSlider("#tool.forcelimit", "multiweld_forcelimit", 0, 1000)
 	panel:ControlHelp("#tool.forcelimit.help")
 	panel:CheckBox("#tool.nocollide", "multiweld_nocollide")
+	panel:ControlHelp("#tool.nocollide.help")
 end
