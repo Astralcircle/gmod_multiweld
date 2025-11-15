@@ -43,10 +43,12 @@ function TOOL:LeftClick(trace)
 
 	if SERVER then
 		if self.Objects[ent] then
+			self:GetOwner():SendLua("surface.PlaySound(\"buttons/button22.wav\")")
 			ent:SetColor(self.Objects[ent])
 			self.Objects[ent] = nil
 		else
 			if util.IsValidPhysicsObject(ent, 0) then
+				self:GetOwner():SendLua("surface.PlaySound(\"buttons/button22.wav\")")
 				self.Objects[ent] = ent:GetColor()
 				ent:SetColor(Color(0, 255, 0))
 			else
@@ -142,7 +144,7 @@ function TOOL:RightClick()
 			undo.Finish("#tool.multiweld.name")
 		end
 
-		owner:SendLua(string.format("notification.AddLegacy(\"Created %i constraints\", NOTIFY_GENERIC, 3)", #created))
+		owner:SendLua(string.format("notification.AddLegacy(\"Created %i constraints\", NOTIFY_GENERIC, 3) surface.PlaySound(\"buttons/button22.wav\")", #created))
 		self:ClearObjects()
 	end
 
@@ -151,7 +153,7 @@ end
 
 function TOOL:Reload()
 	if SERVER and not table.IsEmpty(self.Objects) then
-		self:GetOwner():SendLua("notification.AddLegacy(\"Cleared all objects\", NOTIFY_GENERIC, 2)")
+		self:GetOwner():SendLua("notification.AddLegacy(\"Cleared all objects\", NOTIFY_GENERIC, 2) surface.PlaySound(\"buttons/button22.wav\")")
 		self:ClearObjects()
 	end
 
