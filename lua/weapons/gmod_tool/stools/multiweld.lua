@@ -171,7 +171,7 @@ local default_convars = TOOL:BuildConVarList()
 
 function TOOL.BuildCPanel(panel)
 	panel:Help("#tool.multiweld.desc")
-	panel:ToolPresets("massweld", default_convars)
+	panel:ToolPresets("multiweld", default_convars)
 	panel:NumSlider("Scale:", "multiweld_scale", 0, 10)
 	panel:ControlHelp("Scales the AABB bounds for intersection checks. Higher value = more constraints, 0 = weld all (performance intensive)")
 	panel:NumSlider("#tool.forcelimit", "multiweld_forcelimit", 0, 1000)
