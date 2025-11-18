@@ -82,6 +82,11 @@ end
 function TOOL:RightClick()
 	if CLIENT then return false end
 
+	local weld = self:GetClientBool("weld", true)
+	local nocollide = self:GetClientBool("nocollide", false)
+	if not weld and not nocollide then self:ClearObjects() return false end
+
+	local forcelimit = self:GetClientNumber("forcelimit", 0)
 	local scale = self:GetClientNumber("scale", 2)
 	local owner = self:GetOwner()
 	local limithit = nil
@@ -128,9 +133,9 @@ function TOOL:RightClick()
 
 				local constr
 
-				if self:GetClientBool("weld", true) then
-					constr = constraint.Weld(ent, subent, 0, 0, self:GetClientNumber("forcelimit"), self:GetClientBool("nocollide"))
-				elseif self:GetClientBool("nocollide") then
+				if weld then
+					constr = constraint.Weld(ent, subent, 0, 0, forcelimit, nocollide)
+				else
 					constr = constraint.NoCollide(ent, subent, 0, 0, true)
 				end
 
