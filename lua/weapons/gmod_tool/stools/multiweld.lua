@@ -6,6 +6,7 @@ TOOL.Information = {
 	{name = "reload"}
 }
 
+TOOL.ClientConVar["weld"] = "1"
 TOOL.ClientConVar["forcelimit"] = "0"
 TOOL.ClientConVar["nocollide"] = "0"
 TOOL.ClientConVar["scale"] = "2"
@@ -125,12 +126,18 @@ function TOOL:RightClick()
 				 	end
 				end
 
-				local weld = constraint.Weld(ent, subent, 0, 0, self:GetClientNumber("forcelimit"), self:GetClientBool("nocollide"))
+				local constr
 
-				if IsValid(weld) then
-					owner:AddCount("constraints", weld)
-					owner:AddCleanup("constraints", weld)
-					table.insert(created, weld)
+				if self:GetClientBool("weld", true) then
+					constr = constraint.Weld(ent, subent, 0, 0, self:GetClientNumber("forcelimit"), self:GetClientBool("nocollide"))
+				elseif self:GetClientBool("nocollide") then
+					constr = constraint.NoCollide(ent, subent, 0, 0, true)
+				end
+
+				if IsValid(constr) then
+					owner:AddCount("constraints", constr)
+					owner:AddCleanup("constraints", constr)
+					table.insert(created, constr)
 				end
 			end
 		end
@@ -176,6 +183,8 @@ function TOOL.BuildCPanel(panel)
 	panel:ControlHelp("Scales the AABB bounds for intersection checks. Higher value = more constraints, 0 = weld all (performance intensive)")
 	panel:NumSlider("#tool.forcelimit", "multiweld_forcelimit", 0, 1000)
 	panel:ControlHelp("#tool.forcelimit.help")
+	panel:CheckBox("#tool.weld.name", "multiweld_weld")
+	panel:ControlHelp("#tool.weld.desc")
 	panel:CheckBox("#tool.nocollide", "multiweld_nocollide")
 	panel:ControlHelp("#tool.nocollide.help")
 end
